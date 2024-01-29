@@ -5,7 +5,7 @@
   dash *
   ssl
   iotools *
-  iotools-proto.base *)
+  iotools.proto.base *)
 
 (do/a!
   (defclass (name/a! SSLStream) [(name/a! LayeredStream)]
