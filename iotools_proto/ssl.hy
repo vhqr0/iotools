@@ -88,4 +88,5 @@
       (.__init__ (super) :server-side True #** kwargs))))
 
 (export
-  :objects [SyncSSLStream AsyncSSLStream])
+  :objects [SyncSSLStream AsyncSSLStream SyncSSLHandshaker AsyncSSLHandshaker
+            SyncSSLConnector AsyncSSLConnector SyncSSLAcceptor AsyncSSLAcceptor])
