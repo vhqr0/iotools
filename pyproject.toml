@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "iotools"
+version = "0.1.0"
+description = "IO tools for hy"
+authors = ["vhqr0 <zq_cmd@163.com>"]
+readme = "readme.org"
+
+[tool.poetry.dependencies]
+python = ">=3.11,<3.13"
+hy = "^0.27.0"
+dash = {git = "https://github.com/vhqr0/dash.hy.git"}
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
