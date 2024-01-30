@@ -4,14 +4,26 @@
 (import
   dash *
   time
+  threading
+  queue
   io
   socket
   asyncio
   iotools.stream *)
 
 (do/a!
-  (defn/a! (name/a! sleep) [seconds]
-    (wait/a! ((if/a! asyncio.sleep time.sleep) seconds))))
+  (setv (name/a! sleep)            (. (if/a! asyncio time)      sleep)
+        (name/a! Lock)             (. (if/a! asyncio threading) Lock)
+        (name/a! Event)            (. (if/a! asyncio threading) Event)
+        (name/a! Condition)        (. (if/a! asyncio threading) Condition)
+        (name/a! Semaphore)        (. (if/a! asyncio threading) Semaphore)
+        (name/a! BoundedSemaphore) (. (if/a! asyncio threading) BoundedSemaphore)
+        (name/a! Barrier)          (. (if/a! asyncio threading) Barrier)
+        (name/a! Queue)            (. (if/a! asyncio queue)     Queue)
+        (name/a! PriorityQueue)    (. (if/a! asyncio queue)     PriorityQueue)
+        (name/a! LifoQueue)        (. (if/a! asyncio queue)     LifoQueue)
+        (name/a! QueueEmpty)       (. (if/a! asyncio queue)     (if/a! QueueEmpty Empty))
+        (name/a! QueueFull)        (. (if/a! asyncio queue)     (if/a! QueueFull Full))))
 
 (defclass IOStream [SyncStream]
   (defn __init__ [self file #** kwargs]
@@ -83,6 +95,8 @@
       (cls :reader reader :writer writer))))
 
 (export
-  :objects [sync-sleep async-sleep
-            IOStream FileStream BytesStream
-            SocketStream AIOStream SyncTCPStream AsyncTCPStream])
+  :objects [sync-sleep async-sleep SyncLock AsyncLock SyncEvent AsyncEvent SyncCondition AsyncCondition
+            SyncSemaphore AsyncSemaphore SyncBoundedSemaphore AsyncBoundedSemaphore SyncBarrier AsyncBarrier
+            SyncQueue AsyncQueue SyncPriorityQueue AsyncPriorityQueue SyncLifoQueue AsyncLifoQueue
+            SyncQueueEmpty AsyncQueueEmpty SyncQueueFull AsyncQueueFull
+            IOStream FileStream BytesStream SocketStream AIOStream SyncTCPStream AsyncTCPStream])

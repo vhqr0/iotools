@@ -9,8 +9,8 @@
   random [randbytes]
   base64 [b64encode b64decode]
   hashlib [sha1]
-  threading [Lock]
   iotools.struct *
+  iotools.util *
   iotools.proto.base *
   iotools.proto.http *)
 
@@ -70,7 +70,7 @@
     (defn __init__ [self [do-mask True] #** kwargs]
       (.__init__ (super) #** kwargs)
       (setv self.do-mask do-mask
-            self.write-lock (Lock)))
+            self.write-lock ((name/a! Lock))))
 
     (defn/a! ws-read-frame [self]
       (let [#(fin type mask data) (wait/a! (.read-loop self.next-layer WSFrame.read))]
@@ -91,7 +91,7 @@
 
     (defn/a! ws-write-frame [self fin type mask data]
       (ignore
-        (with [_ self.write-lock]
+        (with/a! [_ self.write-lock]
           (when mask
             (setv data (ws-mask-data mask data)))
           (wait/a! (.write self.next-layer (WSFrame.pack #(fin type mask data)))))))
@@ -120,7 +120,7 @@
 
     (defn/a! flush [self]
       (ignore
-        (with [_ self.write-lock]
+        (with/a! [_ self.write-lock]
           (wait/a! (.flush (super))))))
 
     (defn/a! close [self b]
