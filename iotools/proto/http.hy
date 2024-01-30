@@ -158,7 +158,7 @@
 
   (defclass (name/a! HTTPProxyAcceptor) [(name/a! ProxyAcceptor)]
     (defn make-response [self]
-      (HTTPResponse.pack #(version "200" "OK" {"Connection" "close"})))
+      (HTTPResponse.pack #("HTTP/1.1" "200" "OK" {"Connection" "close"})))
 
     (defn/a! proxy-accept [self next-stream]
       (let [#(method path version headers)
