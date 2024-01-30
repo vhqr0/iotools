@@ -5,6 +5,7 @@
 (import
   dash *
   dash.strtools :as s
+  base64 [b64encode b64decode]
   iotools.struct *
   iotools.proto.base *)
 
@@ -93,6 +94,31 @@
 
 
 
+(setv HTTP-BASIC-AUTH-MAGIC b"\xc2\xa3")
+
+(defn http-basic-auth-encode [user password]
+  (-> (s.encode (s.format "{}:{}" user password))
+      (+ HTTP-BASIC-AUTH-MAGIC)
+      b64encode
+      (s.decode)))
+
+(defn http-basic-auth-decode [auth]
+  (when (str? auth)
+    (setv auth (s.encode auth)))
+  (let [auth (b64decode auth)]
+    (when (not (s.ends-with? auth HTTP-BASIC-AUTH-MAGIC))
+      (raise ValueError))
+    (let [#(user password) (-> auth
+                               (s.remove-suffix HTTP-BASIC-AUTH-MAGIC)
+                               (s.decode)
+                               (s.split ":" 1))]
+      #(user password))))
+
+(defn http-basic-auth [user password]
+  (s.format "Basic realm=\"{}\"" (http-basic-auth-encode user password)))
+
+
+
 (do/a!
   (defclass (name/a! HTTPChunkedStream) [(name/a! LayeredStream)]
     (defn/a! real-read [self]
@@ -112,9 +138,16 @@
 
 (do/a!
   (defclass (name/a! HTTPProxyConnector) [(name/a! ProxyConnector)]
+    (defn __init__ [self [extra-headers None] #** kwargs]
+      (.__init__ (super) #** kwargs)
+      (setv self.extra-headers extra-headers))
+
     (defn make-request [self host port]
-      (let [addr (http-pack-addr host port)]
-        (HTTPRequest.pack #("CONNECT" addr "HTTP/1.1" {"Host" addr}))))
+      (let [addr (http-pack-addr host port)
+            headers {"Host" addr}]
+        (when self.extra-headers
+          (setv headers (-merge headers self.extra-headers)))
+        (HTTPRequest.pack #("CONNECT" addr "HTTP/1.1" headers))))
 
     (defn/a! proxy-connect [self next-stream host port]
       (wait/a! (.write next-stream (.make-request self host port)))
@@ -141,9 +174,12 @@
         (let [#(host port) (http-unpack-addr (.get headers "Host" addr))]
           #(host port next-stream))))))
 
+
+
 (export
   :objects [HTTPStatusError
             http-pack-addr http-unpack-addr http-pack-headers http-unpack-headers
             HTTPLine HTTPHeaders HTTPRequest HTTPResponse HTTPChunk
+            HTTP-BASIC-AUTH-MAGIC http-basic-auth-encode http-basic-auth-decode http-basic-auth
             SyncHTTPChunkedStream AsyncHTTPChunkedStream
             SyncHTTPProxyConnector AsyncHTTPProxyConnector SyncHTTPProxyAcceptor AsyncHTTPProxyAcceptor])
