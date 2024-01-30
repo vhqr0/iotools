@@ -56,9 +56,9 @@
 
 (defclass StructSpec []
   (defn [classmethod] from-spec [cls spec]
-    (if (symbol? (get spec 0))
-        (SimpleStructSpec.from-spec spec)
-        (ComplexStructSpec.from-spec spec)))
+    (cond (not (isinstance spec hy.models.List)) (ClassStructSpec.from-spec spec)
+          (symbol? (get spec 0)) (SimpleStructSpec.from-spec spec)
+          True (ComplexStructSpec.from-spec spec)))
 
   (defn [property] read-form [self]
     (raise NotImplementedError))
@@ -67,6 +67,20 @@
     (raise NotImplementedError))
 
   (defn [property] names-form [self]))
+
+(defclass ClassStructSpec [StructSpec]
+  ;; spec: class-form
+  (defn [classmethod] from-spec [cls spec]
+    (cls spec))
+
+  (defn __init__ [self struct]
+    (setv self.struct-form struct))
+
+  (defn [property] read-form [self]
+    `(.read ~self.struct-form reader))
+
+  (defn [property] write-form [self]
+    `(.write ~self.struct-form writer it)))
 
 (defclass ComplexStructSpec [StructSpec]
   ;; spec: [& [destruct-from spec] ...]
@@ -206,11 +220,6 @@
   ;; meta: :sep
   (defn [cached-property] sep-form [self]
     (-getitem self.meta "sep")))
-
-(defclass StructMixin []
-  ;; meta: :struct
-  (defn [cached-property] struct-form [self]
-    (-getitem self.meta "struct")))
 
 (defclass SpecMixin []
   ;; meta: :spec
@@ -365,14 +374,14 @@
        (.write writer it)
        (.write writer ~self.sep-form))))
 
-(defclass StructStructSpec [StructMixin SimpleStructSpec]
+(defclass StructStructSpec [SpecMixin SimpleStructSpec]
   (setv type 'struct)
 
   (defn [property] read-type-form [self]
-    `(.read ~self.struct-form reader))
+    self.spec-read-form)
 
   (defn [property] write-type-form [self]
-    `(.write ~self.struct-form writer it)))
+    self.spec-write-form))
 
 (defclass ListStructSpec [SpecMixin LenMixin SimpleStructSpec]
   (setv type 'list)

@@ -6,7 +6,7 @@
   iotools *)
 
 (defclass LayeredMixin []
-  (defn __init__ [self next-layer #** kwargs]
+  (defn __init__ [self [next-layer None] #** kwargs]
     (.__init__ (super) #** kwargs)
     (setv self.next-layer next-layer)))
 
@@ -26,12 +26,14 @@
       (raise NotImplementedError))
 
     (defn/a! handshake [self lowest-stream]
-      (let [next-stream (wait/a! (.connect self.next-layer lowest-stream))]
-        (try
-          (wait/a! (.close next-stream))
-          (except [Exception]
-            (wait/a! (.close next-stream))
-            (raise)))))))
+      (if self.next-layer
+          (let [next-stream (wait/a! (.connect self.next-layer lowest-stream))]
+            (try
+              (wait/a! (.real-handshake self next-stream))
+              (except [Exception]
+                (wait/a! (.close next-stream))
+                (raise))))
+          (wait/a! (.real-handshake self lowest-stream))))))
 
 (do/a!
   (defclass (name/a! ProxyConnector) [(name/a! Handshaker)]

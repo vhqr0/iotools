@@ -68,9 +68,43 @@
   (defn extend [self iterable]
     (.extend self.data iterable))
 
-  (defn strip [self]
+  (defn popleft [self]
     (let [view self.view]
-      (setv #(self.data self.pos) #((bytearray view) 0))))
+      (if view
+          (do
+            (+= self.pos 1)
+            (get view 0))
+          (raise IndexError))))
+
+  (defn appendleft [self v]
+    (ignore
+      (if self.pos
+          (do
+            (-= self.pos 1)
+            (-setitem self.data self.pos v))
+          (let [view self.view]
+            (setv self.data (doto (bytearray) (.append v) (.extend view))
+                  self.pos 0)))))
+
+  (defn extendleft [self iterable]
+    (ignore
+      ;; TODO: check buffer protocol instead
+      (when (isinstance iterable #(bytes bytearray memoryview))
+        (let [nbytes (len iterable)]
+          (when (<= nbytes self.pos)
+            (let [from-view (memoryview iterable)
+                  to-view (cut (memoryview self.data) (- self.pos nbytes) self.pos)]
+              (setv (cut to-view) (cut from-view))
+              (-= self.pos nbytes)
+              (return)))
+          (let [view self.view]
+            (setv self.data (doto (bytearray iterable) (.extend view))
+                  self.pos 0))))))
+
+  (defn strip [self]
+    (ignore
+      (let [view self.view]
+        (setv #(self.data self.pos) #((bytearray view) 0)))))
 
   (defn readall [self]
     (let [b (bytes self)] (.clear self) b))

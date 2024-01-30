@@ -67,14 +67,13 @@
       (let [pos self.read-buf.pos]
         (while True
           (try
-            (let [result (readfn self.read-buf)]
-              (.strip self)
-              (return result))
-            (setv result (readfn self.read-buf))
-            (break)
-            (except [BufferWantReadError]
-              (setv self.read-buf.pos pos)
-              (wait/a! (.peek-more self)))))))
+            (return
+              (let [result (readfn self.read-buf)]
+                (.strip self)
+                result))
+            (except [BufferWantReadError]))
+          (setv self.read-buf.pos pos)
+          (wait/a! (.peek-more self)))))
 
     (defn/a! read-loop-iter [self readfn]
       (while (do (wait/a! (.peek self)) self.read-buf)
@@ -98,6 +97,9 @@
 
     (defn/a! close [self]
       (ignore
+        (try
+          (wait/a! (.flush self))
+          (except [Exception]))
         (try
           (wait/a! (.real-close self))
           (except [Exception]))))))

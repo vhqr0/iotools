@@ -85,9 +85,9 @@
         (linecrlf.unpack b"hello"))))
 
   (defn test-struct [self]
-    ;; slow: :struct meta have better to spec a pre-defined struct,
+    ;; slow: :spec meta have better to spec a pre-defined struct,
     ;; struct-type create new struct every time when call
-    (let [linecrlf (hy.eval '(struct-type [struct :struct (struct-type [line :sep b"\r\n"])]))]
+    (let [linecrlf (hy.eval '(struct-type [struct :spec (struct-type [line :sep b"\r\n"])]))]
       (.assertEqual self (linecrlf.pack b"hello") b"hello\r\n")
       (.assertEqual self (linecrlf.unpack b"hello\r\n") b"hello")
       (with [_ (.assertRaises self BufferWantWriteError)]
