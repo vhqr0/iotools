@@ -8,4 +8,4 @@ test:
 
 .PHONY: test-proto
 test-proto:
-	poetry run python -B -m unittest tests.proto -v
+	poetry run python -B -m unittest tests.test_proto -v
