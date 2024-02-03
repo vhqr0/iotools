@@ -70,7 +70,8 @@
     (defn __init__ [self [do-mask True] #** kwargs]
       (.__init__ (super) #** kwargs)
       (setv self.do-mask do-mask
-            self.write-lock ((name/a! Lock))))
+            self.write-lock ((name/a! Lock))
+            self.flush-lock ((name/a! Lock))))
 
     (defn/a! ws-read-frame [self]
       (let [#(fin type mask data) (wait/a! (.read-loop self.next-layer WSFrame.read))]
@@ -87,7 +88,7 @@
               (raise RuntimeError))
             (setv fin next-fin)
             (.append bs next-data)))
-        #(type (s.concats-in bs))))
+        #(type (s.concatb-in bs))))
 
     (defn/a! ws-write-frame [self fin type mask data]
       (ignore
@@ -105,9 +106,9 @@
       (while True
         (let [#(type data) (wait/a! (.ws-read-message self))]
           (cond (= type WSType.Continue) (continue)
-                (= type WSType.Text)     data
-                (= type WSType.Binary)   data
-                (= type WSType.Close)    b""
+                (= type WSType.Text)     (return data)
+                (= type WSType.Binary)   (return data)
+                (= type WSType.Close)    (return b"")
                 (= type WSType.Pong)     (continue)
                 (= type WSType.Ping)     (do
                                            (wait/a! (.ws-write-message self WSType.Pong data))
@@ -116,27 +117,23 @@
                 True (raise RuntimeError)))))
 
     (defn/a! real-write [self b]
-      (ignore (wait/a! (.ws-write-message WSType.Binary b))))
+      (ignore (wait/a! (.ws-write-message self WSType.Binary b))))
+
+    (defn/a! shutdown [self]
+      (ignore (wait/a! (.ws-write-message self WSType.Close b""))))
 
     (defn/a! flush [self]
       (ignore
-        (with/a! [_ self.write-lock]
-          (wait/a! (.flush (super))))))
-
-    (defn/a! close [self b]
-      (ignore
-        (try
-          (wait/a! (.ws-write-message WSType.Close b""))
-          (except [Exception]))
-        (wait/a! (.close (super)))))))
+        (with/a! [_ self.flush-lock]
+          (wait/a! (.flush (super))))))))
 
 
 
 (do/a!
   (defclass (name/a! WSConnector) [(name/a! Handshaker)]
-    (defn __init__ [self host port [path "/"] [extra-headers None] #** kwargs]
+    (defn __init__ [self host [path "/"] [extra-headers None] #** kwargs]
       (.__init__ (super) #** kwargs)
-      (setv #(self.host self.port self.path) #(host port path)
+      (setv #(self.host self.path) #(host path)
             self.key (ws-rand-key)
             self.extra-headers extra-headers))
 

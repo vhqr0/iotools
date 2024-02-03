@@ -10,6 +10,9 @@ python = ">=3.11,<3.13"
 hy = "^0.27.0"
 dash = {git = "https://github.com/vhqr0/dash.hy.git"}
 
+[tool.poetry.group.test.dependencies]
+aiohttp = "^3.9.3"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

@@ -60,7 +60,10 @@
       (wait/a! (.ssl-operate-loop self (fn [ssl-object] (.read ssl-object 4096)))))
 
     (defn/a! real-write [self b]
-      (ignore (wait/a! (.ssl-operate-loop self (fn [ssl-object] (.write ssl-object b))))))))
+      (ignore (wait/a! (.ssl-operate-loop self (fn [ssl-object] (.write ssl-object b))))))
+
+    (defn/a! shutdown [self]
+      (ignore (wait/a! (.ssl-operate-loop self (fn [ssl-object] (.unwrap ssl-object))))))))
 
 (do/a!
   (defclass (name/a! SSLHandshaker) [(name/a! Handshaker)]
@@ -74,10 +77,11 @@
             self.session session))
 
     (defn/a! real-handshake [self next-stream]
-      (.wrap (name/a! SSLStream) next-stream self.ssl-context
-             :server-side self.server-side
-             :server-hostname self.server-hostname
-             :session self.session)))
+      (wait/a!
+        (.wrap (name/a! SSLStream) next-stream self.ssl-context
+               :server-side self.server-side
+               :server-hostname self.server-hostname
+               :session self.session))))
 
   (defclass (name/a! SSLConnector) [(name/a! SSLHandshaker)]
     (defn __init__ [self #** kwargs]

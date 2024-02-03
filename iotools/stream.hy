@@ -15,6 +15,7 @@
                     [write-threshold 4096]]
       (setv self.read-buf (Buffer)
             self.write-buf (Buffer)
+            self.closed False
             self.peek-threshold peek-threshold
             self.strip-threshold strip-threshold
             self.write-threshold write-threshold))
@@ -31,7 +32,7 @@
       self)
 
     (defn/a! (if/a! __anext__ __next__) [self]
-      (if-let [b (wait/a! (.read self))] b (raise StopIteration)))
+      (if-let [b (wait/a! (.read self))] b (raise (if/a! StopAsyncIteration StopIteration))))
 
     (defn/a! (if/a! __aenter__ __enter__) [self]
       self)
@@ -95,14 +96,19 @@
         (when self.write-buf
           (wait/a! (.real-write self (.readall self.write-buf))))))
 
+    (defn/a! shutdown [self])
+
     (defn/a! close [self]
       (ignore
-        (try
-          (wait/a! (.flush self))
-          (except [Exception]))
-        (try
-          (wait/a! (.real-close self))
-          (except [Exception]))))))
+        (unless self.closed
+          (setv self.closed True)
+          (try
+            (wait/a! (.shutdown self))
+            (wait/a! (.flush self))
+            (except [Exception]))
+          (try
+            (wait/a! (.real-close self))
+            (except [Exception])))))))
 
 (export
   :objects [StreamEOFError SyncStream AsyncStream])

@@ -82,8 +82,8 @@
 
   (defn/a real-close [self]
     (ignore
-      (.close self)
-      (await (.wait-closed self)))))
+      (.close self.writer)
+      (await (.wait-closed self.writer)))))
 
 (defclass SyncTCPStream [SocketStream]
   (defn [classmethod] open [cls host port]

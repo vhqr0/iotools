@@ -69,10 +69,10 @@
    :spec [[auth HTTPLine]
           [command [int :len 1 :to-validate (= it 1)]]
           [#(type host port) Socks5Addr]
-          [reserved [struct :spec HTTPLine :to-validate (= it "")]]]
+          [empty HTTPEmptyLine]]
    :from (let [#(auth host port) it]
-           #(auth 1 Socks5AddrType.DN host port ""))
-   :to (let [#(auth command type host port reserved) it]
+           #(auth 1 Socks5AddrType.DN host port b"\r\n"))
+   :to (let [#(auth command type host port empty) it]
          #(auth host port))])
 
 
@@ -100,8 +100,8 @@
         (wait/a! (.peek-more next-stream)))
       (let [acceptor-class (if (= (get next-stream.read-buf 0) 5)
                                (name/a! Socks5Acceptor)
-                               (name/a! HTTPProxyAcceptor))])
-      (wait/a! (.proxy-accept (acceptor-class) next-stream)))))
+                               (name/a! HTTPProxyAcceptor))]
+        (wait/a! (.proxy-accept (acceptor-class) next-stream))))))
 
 
 

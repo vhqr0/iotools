@@ -57,6 +57,9 @@
 (defstruct HTTPLine
   [line :sep b"\r\n" :from (s.encode it) :to (s.decode it)])
 
+(defstruct HTTPEmptyLine
+  [bytes :len 2 :to-validate (= it b"\r\n")])
+
 (defstruct _HTTPFirstLine
   [struct :spec HTTPLine :from (s.join-in " " it) :to (s.split it :maxsplit 2)])
 
@@ -88,9 +91,10 @@
               :to (if it (int it) 0)]]
           [data [cond
                  :cond [(= n 0) [const :const b""]
-                        (> n 0) [bytes :len n]]]]]
-   :from #((len it) it)
-   :to (let [#(n data) it] data)])
+                        (> n 0) [bytes :len n]]]]
+          [empty HTTPEmptyLine]]
+   :from #((len it) it b"\r\n")
+   :to (let [#(n data empty) it] data)])
 
 
 
@@ -127,12 +131,8 @@
     (defn/a! real-write [self b]
       (ignore (wait/a! (.write self.next-layer (HTTPChunk.pack b)))))
 
-    (defn/a! close [self]
-      (ignore
-        (try
-          (wait/a! (.write self.next-layer (HTTPChunk.pack b"")))
-          (except [Exception]))
-        (wait/a! (.close (super)))))))
+    (defn/a! shutdown [self]
+      (ignore (wait/a! (.write self.next-layer (HTTPChunk.pack b"")))))))
 
 
 
@@ -171,15 +171,13 @@
                             #(method path version
                                      (--filter-keys headers (not (s.starts-with? it "Proxy-")))))]
               (.extendleft next-stream.read-buf request)))
-        (let [#(host port) (http-unpack-addr (.get headers "Host" addr))]
+        (let [#(host port) (http-unpack-addr (.get headers "Host" path))]
           #(host port next-stream))))))
 
 
 
 (export
-  :objects [HTTPStatusError
-            http-pack-addr http-unpack-addr http-pack-headers http-unpack-headers
-            HTTPLine HTTPHeaders HTTPRequest HTTPResponse HTTPChunk
+  :objects [HTTPStatusError HTTPLine HTTPEmptyLine HTTPHeaders HTTPRequest HTTPResponse HTTPChunk
             HTTP-BASIC-AUTH-MAGIC http-basic-auth-encode http-basic-auth-decode http-basic-auth
             SyncHTTPChunkedStream AsyncHTTPChunkedStream
             SyncHTTPProxyConnector AsyncHTTPProxyConnector SyncHTTPProxyAcceptor AsyncHTTPProxyAcceptor])
