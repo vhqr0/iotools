@@ -35,6 +35,18 @@
         it (readfn reader)]
     (if reader (raise BufferWantWriteError) it)))
 
+(defn struct-pack-many [writefn them]
+  (let [writer (Buffer)]
+    (--each them (writefn writer it))
+    (bytes writer)))
+
+(defn struct-unpack-many [readfn b]
+  (let [reader (Buffer b)
+        them (list)]
+    (while reader
+      (.append them (readfn reader)))
+    them))
+
 
 
 (defclass StructValidationError [RuntimeError])
@@ -50,7 +62,13 @@
     (struct-unpack cls.read b))
 
   (defn [classmethod] pack [cls it]
-    (struct-pack cls.write it)))
+    (struct-pack cls.write it))
+
+  (defn [classmethod] unpack-many [cls b]
+    (struct-unpack-many cls.read b))
+
+  (defn [classmethod] pack-many [cls them]
+    (struct-pack-many cls.write them)))
 
 
 
@@ -481,6 +499,12 @@
 (defmacro struct-packfn [spec]
   `(fn [it] (struct-pack (struct-writefn ~spec) it)))
 
+(defmacro struct-unpack-many-fn [spec]
+  `(fn [b] (struct-unpack-many (struct-readfn ~spec) b)))
+
+(defmacro struct-pack-many-fn [spec]
+  `(fn [them] (struct-pack-many (struct-writefn ~spec) them)))
+
 (defmacro struct-type [spec]
   (let [spec (StructSpec.from-spec spec)]
     `(type "<struct>" #(Struct)
@@ -496,6 +520,8 @@
        (defn [staticmethod] write [writer it] (ignore ~spec.write-form)))))
 
 (export
-  :objects [int-pack int-unpack bits-pack bits-unpack struct-pack struct-unpack
+  :objects [int-pack int-unpack bits-pack bits-unpack
+            struct-pack struct-unpack struct-pack-many struct-unpack-many
             StructValidationError Struct]
-  :macros [struct-readfn struct-writefn struct-unpackfn struct-packfn struct-type defstruct])
+  :macros [struct-readfn struct-writefn struct-unpackfn struct-packfn
+           struct-unpack-many-fn struct-pack-many-fn struct-type defstruct])

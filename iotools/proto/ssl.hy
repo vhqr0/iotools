@@ -4,7 +4,6 @@
 (import
   dash *
   ssl
-  iotools *
   iotools.proto.base *)
 
 (do/a!

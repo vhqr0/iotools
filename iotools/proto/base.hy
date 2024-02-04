@@ -3,7 +3,7 @@
 
 (import
   dash *
-  iotools *)
+  iotools.stream *)
 
 (defclass LayeredMixin []
   (defn __init__ [self [next-layer None] #** kwargs]
