@@ -29,6 +29,16 @@
       (with [_ (.assertRaises self StructValidationError)]
         (const1.pack b""))))
 
+  (defn test-all [self]
+    (let [allbytes (hy.eval '(struct-type [all]))]
+      (.assertEqual self (allbytes.pack b"hello") b"hello")
+      (.assertEqual self (allbytes.unpack b"hello") b"hello"))
+    (let [int2 (hy.eval '(struct-type [all :struct (struct-type [int :len 2])]))]
+      (.assertEqual self (int2.pack 0x1234) b"\x12\x34")
+      (.assertEqual self (int2.unpack b"\x12\x34") 0x1234)
+      (with [_ (.assertRaises self StructValidationError)]
+        (.assertEqual self (int2.unpack b"\x12")))))
+
   (defn test-bytes [self]
     (let [bytes2 (hy.eval '(struct-type [bytes :len 2]))]
       (.assertEqual self (bytes2.pack b"\x01\x02") b"\x01\x02")
@@ -40,7 +50,16 @@
       (with [_ (.assertRaises self StructValidationError)]
         (bytes2.pack b"\x01"))
       (with [_ (.assertRaises self StructValidationError)]
-        (bytes2.pack b"\x01\x02\x03"))))
+        (bytes2.pack b"\x01\x02\x03")))
+    (let [vbytes1s (hy.eval '(struct-type [bytes :len 6 :struct (struct-type [vbytes :len 1]) :many True]))]
+      (.assertEqual self (vbytes1s.pack #(b"1" b"345")) b"\x011\x03345")
+      (.assertEqual self (vbytes1s.pack #(b"1" b"3" b"5")) b"\x011\x013\x015")
+      (.assertEqual self (vbytes1s.unpack b"\x011\x03345") [b"1" b"345"])
+      (.assertEqual self (vbytes1s.unpack b"\x011\x013\x015") [b"1" b"3" b"5"])
+      (with [_ (.assertRaises self StructValidationError)]
+        (vbytes1s.unpack b"\x011\x04345"))
+      (with [_ (.assertRaises self StructValidationError)]
+        (vbytes1s.pack #(b"1" b"3" b"5" b"7")))))
 
   (defn test-vbytes [self]
     (let [vbytes2 (hy.eval '(struct-type [vbytes
@@ -85,8 +104,6 @@
         (linecrlf.unpack b"hello"))))
 
   (defn test-struct [self]
-    ;; slow: :spec meta have better to spec a pre-defined struct,
-    ;; struct-type create new struct every time when call
     (let [linecrlf (hy.eval '(struct-type [struct :spec (struct-type [line :sep b"\r\n"])]))]
       (.assertEqual self (linecrlf.pack b"hello") b"hello\r\n")
       (.assertEqual self (linecrlf.unpack b"hello\r\n") b"hello")

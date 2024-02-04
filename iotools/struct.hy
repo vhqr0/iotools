@@ -228,6 +228,31 @@
                  ~form)))
       form)))
 
+(defclass BytesMixin []
+  ;; meta: :struct :many
+
+  (defn [property] read-bytes-form [self]
+    (raise NotImplementedError))
+
+  (defn [property] write-bytes-form [self]
+    (raise NotImplementedError))
+
+  (defn [property] read-type-form [self]
+    (let [it self.read-bytes-form]
+      (when self.struct
+        (setv it `(let [it ~it]
+                    (try
+                      ((. ~self.struct ~(if self.many 'unpack-many 'unpack)) it)
+                      (except [e BufferWantReadError]
+                        (raise StructValidationError :from e))))))
+      it))
+
+  (defn [property] write-type-form [self]
+    (let [it self.write-bytes-form]
+      (when self.struct
+        (setv it `(let [it ((. ~self.struct ~(if self.many 'pack-many 'pack)) it)] ~it)))
+      it)))
+
 (defclass SepMixin []
   ;; meta: :sep
   (defn [cached-property] sep-form [self]
@@ -305,24 +330,33 @@
     `(unless (= it ~self.const-form)
        (raise StructValidationError))))
 
-(defclass BytesStructSpec [LenMixin SimpleStructSpec]
+(defclass AllStructSpec [BytesMixin SimpleStructSpec]
+  (setv type 'all)
+
+  (defn [property] read-bytes-form [self]
+    '(.readall reader :clear False))
+
+  (defn [property] write-bytes-form [self]
+    '(.write writer it)))
+
+(defclass BytesStructSpec [LenMixin BytesMixin SimpleStructSpec]
   (setv type 'bytes)
 
-  (defn [property] read-type-form [self]
+  (defn [property] read-bytes-form [self]
     `(.readexactly reader ~self.len-form))
 
-  (defn [property] write-type-form [self]
+  (defn [property] write-bytes-form [self]
     `(if (= (len it) ~self.len-form)
          (.write writer it)
          (raise StructValidationError))))
 
-(defclass VBytesStructSpec [VLenMixin SimpleStructSpec]
+(defclass VBytesStructSpec [VLenMixin BytesMixin SimpleStructSpec]
   (setv type 'vbytes)
 
-  (defn [property] read-type-form [self]
+  (defn [property] read-bytes-form [self]
     `(.readexactly reader ~self.read-vlen-form))
 
-  (defn [property] write-type-form [self]
+  (defn [property] write-bytes-form [self]
     `(do
        (let [it (len it)]
          ~self.write-vlen-form)
