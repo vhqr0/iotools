@@ -129,8 +129,7 @@
 
 
 (export
-  :objects [Socks5AddrType Socks5Addr Socks5Request Socks5Reply TrojanRequest
+  :objects [Socks5AddrType Socks5Addr
             SyncSocks5Connector AsyncSocks5Connector SyncSocks5Acceptor AsyncSocks5Acceptor
             SyncAutoProxyAcceptor AsyncAutoProxyAcceptor
-            trojan-auth
-            SyncTrojanConnector AsyncTrojanConnector SyncTrojanAcceptor AsyncTrojanAcceptor])
+            trojan-auth SyncTrojanConnector AsyncTrojanConnector SyncTrojanAcceptor AsyncTrojanAcceptor])

@@ -178,6 +178,5 @@
 
 
 (export
-  :objects [WS-MAGIC ws-mask-data ws-rand-key ws-accept
-            WSType WSFrame SyncWSStream AsyncWSStream
+  :objects [WSType WSFrame SyncWSStream AsyncWSStream
             SyncWSConnector AsyncWSConnector SyncWSAcceptor AsyncWSAcceptor])

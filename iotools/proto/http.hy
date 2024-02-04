@@ -178,6 +178,6 @@
 
 (export
   :objects [HTTPStatusError HTTPLine HTTPEmptyLine HTTPHeaders HTTPRequest HTTPResponse HTTPChunk
-            HTTP-BASIC-AUTH-MAGIC http-basic-auth-encode http-basic-auth-decode http-basic-auth
+            http-basic-auth-encode http-basic-auth-decode http-basic-auth
             SyncHTTPChunkedStream AsyncHTTPChunkedStream
             SyncHTTPProxyConnector AsyncHTTPProxyConnector SyncHTTPProxyAcceptor AsyncHTTPProxyAcceptor])
