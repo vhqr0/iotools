@@ -8,7 +8,7 @@ readme = "readme.org"
 [tool.poetry.dependencies]
 python = ">=3.11,<3.13"
 hy = "^0.27.0"
-dash = {git = "https://github.com/vhqr0/dash.hy.git"}
+dash = {git = "https://github.com/vhqr0/dash.hy.git", rev = "4a1bb9711082dead092a837d449da6d72dd8a91a"}
 
 [tool.poetry.group.test.dependencies]
 aiohttp = "^3.9.3"

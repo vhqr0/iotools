@@ -82,9 +82,7 @@
     (raise NotImplementedError))
 
   (defn [property] write-form [self]
-    (raise NotImplementedError))
-
-  (defn [property] names-form [self]))
+    (raise NotImplementedError)))
 
 (defclass ClassStructSpec [StructSpec]
   ;; spec: class-form
@@ -118,11 +116,7 @@
 
   (defn [property] write-form [self]
     `(let [#(~@self.names) it]
-       ~@(--map `(let [it ~(car it)] ~(. (cdr it) write-form)) self.fields)))
-
-  (defn [property] names-form [self]
-    (hy.models.Tuple
-      (--map (hy.mangle (str it)) self.names))))
+       ~@(--map `(let [it ~(car it)] ~(. (cdr it) write-form)) self.fields))))
 
 (defclass SimpleStructSpec [StructSpec]
   (setv type-dict (dict)
@@ -508,14 +502,12 @@
 (defmacro struct-type [spec]
   (let [spec (StructSpec.from-spec spec)]
     `(type "<struct>" #(Struct)
-           {"names" ~spec.names-form
-            "read" (staticmethod (fn [reader] ~spec.read-form))
+           {"read" (staticmethod (fn [reader] ~spec.read-form))
             "write" (staticmethod (fn [writer it] (ignore ~spec.write-form)))})))
 
 (defmacro defstruct [name spec]
   (let [spec (StructSpec.from-spec spec)]
     `(defclass ~name [Struct]
-       (setv names ~spec.names-form)
        (defn [staticmethod] read [reader] ~spec.read-form)
        (defn [staticmethod] write [writer it] (ignore ~spec.write-form)))))
 

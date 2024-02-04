@@ -106,8 +106,12 @@
       (let [view self.view]
         (setv #(self.data self.pos) #((bytearray view) 0)))))
 
-  (defn readall [self]
-    (let [b (bytes self)] (.clear self) b))
+  (defn readall [self [clear True]]
+    (let [b (bytes self)]
+      (if clear
+          (.clear self)
+          (setv self.pos (len self.data)))
+      b))
 
   (defn readinto [self view]
     (let [from-view self.view

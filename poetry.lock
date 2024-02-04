@@ -143,7 +143,7 @@ hy = "^0.27.0"
 [package.source]
 type = "git"
 url = "https://github.com/vhqr0/dash.hy.git"
-reference = "HEAD"
+reference = "4a1bb9711082dead092a837d449da6d72dd8a91a"
 resolved_reference = "4a1bb9711082dead092a837d449da6d72dd8a91a"
 
 [[package]]
@@ -472,4 +472,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11,<3.13"
-content-hash = "6c49e1c0fc4aeea8eda2e680f59b9940d9732830fd1e8c96fdd2ea1453b8fbb3"
+content-hash = "fc50dbad43052fe518db2e81547f111d084cb69a601b3cedb0b58eae1f9b7f3b"
