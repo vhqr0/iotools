@@ -1,0 +1,137 @@
+#+TITLE: iotools.hy
+
+IO tools for Hy.
+
+* iotools
+
+** iotools.buffer
+
+Flexible buffer data struct.
+
+#+begin_src hy
+  (setv buffer (Buffer b"hello"))
+
+  #(buffer.pos buffer.data) ; 0 b"hello"
+
+  (.read buffer 2) ; b"he"
+  #(buffer.pos buffer.data) ; 2 b"hello"
+
+  (.strip buffer)
+  #(buffer.pos buffer.data) ; 0 b"llo"
+#+end_src
+
+=Buffer.readexactly= or =Buffer.readuntil= will raise
+=BufferWantReadError= if there has no enough data, in this case, user
+should revert buffer.pos, push more data to buffer, and then read
+again.
+
+** iotools.struct
+
+DSL used to describe data structures.
+
+*** simple struct spec
+
+#+begin_src hy
+  (defstruct Short [int :len 2])
+  (Short.pack 1) ; b"\x00\x01"
+  (Short.unapck b"\x00\x01") ; 1
+#+end_src
+
+*** complex struct spec
+
+#+begin_src hy
+  (defstruct ShortPair
+    [[first [int :len 2]]
+     [second [int :len 2]]])
+  (ShortPair.pack #(1 2)) ; b"\x00\x01\x00\x02"
+  (ShortPair.unpack b"\x00\x01\x00\x02") ; #(1 2)
+#+end_src
+
+*** class struct spec
+
+#+begin_src hy
+  (defstruct int2 [int :len 2])
+  (defstruct Short int2)
+  (defstruct ShortPair [[first Short] [second Short]])
+#+end_src
+
+*** more complex struct spec
+
+See =iotools.proto= or =iotools-tls13.struct= for more examples.
+
+** iotools.stream
+
+Sync/Async stream abstraction, based on =dash.do/a!=.
+
+This module inspired by Python built-in =ssl.SSLObject=: for any read
+function =f= that read data from read buffer, reapeatedly push new
+data from stream to read buffer and call =f= on read buffer, while
+=BufferWantReadError= was raised.
+
+** iotools.util
+
+Sync/Async object alias, and basic stream implementation.
+
+Alias:
+
+- =(name/a! sleep)=: =time.sleep= =asyncio.sleep=
+- =(name/a! Lock)=: =threading.Lock= =asyncio.Look=
+- =(name/a! Queue)=: =queue.Queue= =asyncio.Queue=
+- ...
+
+
+Basic streams: =IOStream=, =FileStream=, =BytesStream=,
+=SocketStream=, =AIOStream=, =(name/a! TCPStream)=.
+
+* iotools.proto
+
+Simple protocol implementation based on iotools.
+
+** iotools.proto.ssl
+
+=ssl.SSLObject= wrapper.
+
+#+begin_src hy
+  (with [stream (SyncTCPStream.open host port)]
+    (let [connector (SyncSSLConnector :ssl-context (ssl.create-default-context)
+                                      :server-hostname host)]
+      (with [stream (.handshake connector stream)]
+        ...)))
+#+end_src
+
+** iotools.proto.http
+
+*** HTTPChunkedStream
+
+#+begin_src hy
+  (with stream [SyncTCPStream.open host port]
+    (.write stream (HTTPRequest.pack "GET" "/" "HTTP/1.1" {"Host" host}))
+    (.flush stream)
+    (let [#(version status reason headers) (.read-loop stream HTTPResponse.read)
+          stream (if (= (-get headers "Transfer-Encoding") "chunked")
+                     (SyncHTTPChunkedStream :next-layer stream)
+                     stream)]
+      ...))
+#+end_src
+
+*** HTTPProxyConnector/Acceptor
+
+#+begin_src hy
+  (with [stream (SyncTCPStream.open proxy-host proxy-port)]
+    (let [connector (SyncHTTPProxyConnector :host host :port port)]
+      (with [stream (.handshake connector stream)]
+        ...)))
+#+end_src
+
+** iotools.proto.ws
+
+#+begin_src hy
+  (with [stream (SyncTCPStream.open host port)]
+    (let [connector (SyncWSConnector :host host)]
+      (with [stream (.handshake connector stream)]
+        ...)))
+#+end_src
+
+** iotools.proto.socks5
+
+Similar with =iotools.proto.http=.

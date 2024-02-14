@@ -129,22 +129,18 @@ tests-mypy = ["mypy (>=1.6)", "pytest-mypy-plugins"]
 tests-no-zope = ["attrs[tests-mypy]", "cloudpickle", "hypothesis", "pympler", "pytest (>=4.3.0)", "pytest-xdist[psutil]"]
 
 [[package]]
-name = "dash"
+name = "dash-hy"
 version = "0.1.0"
 description = "A modern list library for Hy"
 optional = false
-python-versions = ">=3.11,<3.13"
-files = []
-develop = false
+python-versions = ">=3.12,<3.13"
+files = [
+    {file = "dash_hy-0.1.0-py3-none-any.whl", hash = "sha256:aade482e7f151ba96686d5046d27add400b9fdbd7585a85c773e093e0da81271"},
+    {file = "dash_hy-0.1.0.tar.gz", hash = "sha256:32962d37353bbc847253a86f59fc13083edb95875ddc3fc6dec0e99933e601fa"},
+]
 
 [package.dependencies]
-hy = "^0.27.0"
-
-[package.source]
-type = "git"
-url = "https://github.com/vhqr0/dash.hy.git"
-reference = "4a1bb9711082dead092a837d449da6d72dd8a91a"
-resolved_reference = "4a1bb9711082dead092a837d449da6d72dd8a91a"
+hy = ">=0.28.0,<0.29.0"
 
 [[package]]
 name = "frozenlist"
@@ -245,12 +241,12 @@ files = [
 
 [[package]]
 name = "hy"
-version = "0.27.0"
+version = "0.28.0"
 description = "A Lisp dialect embedded in Python"
 optional = false
 python-versions = ">= 3.8, < 3.13"
 files = [
-    {file = "hy-0.27.0.tar.gz", hash = "sha256:5d646e32b01fea740057b856639c672489d27ec7f9cc882363951c748d2b5ceb"},
+    {file = "hy-0.28.0.tar.gz", hash = "sha256:ae202f0b5e9094489af2a41b2cee9e0f776d0572da69cb108db2935a7224e17a"},
 ]
 
 [package.dependencies]
@@ -471,5 +467,5 @@ multidict = ">=4.0"
 
 [metadata]
 lock-version = "2.0"
-python-versions = ">=3.11,<3.13"
-content-hash = "fc50dbad43052fe518db2e81547f111d084cb69a601b3cedb0b58eae1f9b7f3b"
+python-versions = ">=3.12,<3.13"
+content-hash = "c705939058923f696be1da23ae0f100f97cd986376c0cb78e8bf919f4a22f67d"

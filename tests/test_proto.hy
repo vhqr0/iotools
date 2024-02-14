@@ -110,7 +110,7 @@
                                   _ (raise ValueError))
                             :host host :port port)]
       (with/a [proxy-stream (await (.handshake proxy-connector tcp-stream))]
-        (with/a [ssl-stream (await (.handshake (AsyncSSLConnector :ssl-context (client-context)) proxy-stream))]
+        (with/a [ssl-stream (await (.handshake (AsyncSSLConnector :ssl-context (client-context) :server-hostname host) proxy-stream))]
           (await (.write ssl-stream (HTTPRequest.pack #("GET" path "HTTP/1.1" {"Host" "localhost"}))))
           (await (.flush ssl-stream))
           (await (.read-loop ssl-stream HTTPResponse.read))

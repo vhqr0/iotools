@@ -1,14 +1,15 @@
 [tool.poetry]
-name = "iotools"
+name = "iotools-hy"
 version = "0.1.0"
-description = "IO tools for hy"
+description = "IO tools for Hy"
 authors = ["vhqr0 <zq_cmd@163.com>"]
 readme = "readme.org"
+packages = [{ include = "iotools" }]
 
 [tool.poetry.dependencies]
-python = ">=3.11,<3.13"
-hy = "^0.27.0"
-dash = {git = "https://github.com/vhqr0/dash.hy.git", rev = "4a1bb9711082dead092a837d449da6d72dd8a91a"}
+python = ">=3.12,<3.13"
+hy = "^0.28.0"
+dash-hy = "^0.1.0"
 
 [tool.poetry.group.test.dependencies]
 aiohttp = "^3.9.3"
